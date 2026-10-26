@@ -153,8 +153,13 @@ function App() {
 
             <main className="book-grid">
               {loading ? (
-                <p>Loading books...</p>
+                <div style={{ textAlign: 'center', width: '100%', gridColumn: '1 / -1', padding: '50px' }}>
+                  <div className="spinner"></div>
+                  <h3 style={{ color: '#38bdf8', marginTop: '20px' }}>Waking up the library server...</h3>
+                  <p style={{ color: '#94a3b8' }}>This takes about 30 seconds on the free cloud tier. Please wait.</p>
+                </div>
               ) : filteredBooks.length === 0 ? (
+            
                 <p>No books found matching your search.</p>
               ) : (
                 filteredBooks.map(book => (

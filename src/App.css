@@ -358,3 +358,18 @@ body {
   color: #f8fafc;
   margin: 0;
 }
+/* Loading Spinner */
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #1e293b;
+  border-top: 5px solid #38bdf8;
+  border-radius: 50%;
+  margin: 0 auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
