@@ -1,38 +1,360 @@
-.App {
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  background-color: #1e293b;
+  border-bottom: 1px solid #334155;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar h1 {
+  color: #38bdf8;
+  font-size: 1.8rem;
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.nav-links a {
+  color: #cbd5e1;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-btn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.login-btn:hover { background-color: #2563eb; }
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+}
+
+.hero h2 {
+  font-size: 3rem;
+  color: #f8fafc;
+  margin-bottom: 10px;
+}
+
+.hero p {
+  color: #94a3b8;
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+}
+
+.search-bar {
+  width: 100%;
+  max-width: 600px;
+  padding: 15px 20px;
+  border-radius: 30px;
+  border: 1px solid #475569;
+  background-color: #1e293b;
+  color: white;
+  font-size: 1rem;
+  outline: none;
+  transition: 0.3s;
+}
+
+.search-bar:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+}
+
+/* Book Grid */
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 30px;
+  padding: 40px;
+}
+
+/* Book Card */
+.book-card {
+  background-color: #1e293b;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #334155;
+  display: flex;
+  flex-direction: column;
+}
+
+.book-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.book-cover {
+  height: 250px;
+  background-color: #0f172a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.book-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-bottom: 1px solid #334155;
+}
+
+.no-cover {
+  font-size: 4rem;
+  opacity: 0.5;
+}
+
+.book-info {
+  padding: 20px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.book-info h3 {
+  font-size: 1.1rem;
+  color: #f8fafc;
+  margin-bottom: 5px;
+  line-height: 1.3;
+}
+
+.author {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+}
+
+.status {
+  margin-top: auto;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.available { color: #10b981; }
+.checked-out { color: #ef4444; }
+
+/* Login Page Styles */
+.login-container {
+  height: calc(100vh - 80px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+}
+
+.login-card {
+  background-color: #1e293b;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #334155;
+}
+
+.login-card h2 {
+  color: #f8fafc;
+  margin-bottom: 10px;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.login-card p {
+  color: #94a3b8;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 0.9rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.input-group {
+  margin-bottom: 20px;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+.input-group label {
+  display: block;
+  color: #cbd5e1;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #475569;
+  background-color: #0f172a;
+  color: white;
+  font-size: 1rem;
+  outline: none;
+}
+
+.input-group input:focus {
+  border-color: #38bdf8;
+}
+
+.login-submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.login-submit-btn:hover {
+  background-color: #2563eb;
+}
+
+.error-msg {
+  background-color: #ef4444;
+  color: white;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* Action Buttons */
+.action-btn {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-top: auto;
+}
+
+.borrow-btn {
+  background-color: #3b82f6;
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.borrow-btn:hover { background-color: #2563eb; }
+
+.reserve-btn {
+  background-color: #f59e0b;
+  color: white;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.reserve-btn:hover { background-color: #d97706; }
+/* My Books Page */
+.empty-state {
+  text-align: center;
+  padding: 50px;
+  background-color: #1e293b;
+  border-radius: 12px;
+  border: 1px solid #334155;
+}
+
+.empty-state h3 { color: #f8fafc; margin-bottom: 10px; }
+.empty-state p { color: #94a3b8; margin-bottom: 20px; }
+
+.loan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.loan-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1e293b;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 5px solid #3b82f6;
+  border-top: 1px solid #334155;
+  border-right: 1px solid #334155;
+  border-bottom: 1px solid #334155;
+}
+
+.loan-card.overdue {
+  border-left-color: #ef4444;
+}
+
+.loan-card h3 { color: #f8fafc; margin-bottom: 5px; }
+.loan-card p { color: #94a3b8; font-size: 0.9rem; }
+
+.loan-status { text-align: right; }
+
+.on-time {
+  color: #10b981;
+  font-weight: bold;
+}
+
+.fine-alert {
+  color: #ef4444;
+  font-weight: bold;
+  line-height: 1.5;
+}
+
+/* Admin Dashboard */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.stat-card {
+  background-color: #1e293b;
+  padding: 30px;
+  border-radius: 12px;
+  border-top: 5px solid #3b82f6;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.stat-card.danger { border-top-color: #ef4444; }
+.stat-card.warning { border-top-color: #f59e0b; }
+.stat-card.info { border-top-color: #8b5cf6; }
+
+.stat-card h3 {
+  color: #94a3b8;
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #f8fafc;
+  margin: 0;
 }
