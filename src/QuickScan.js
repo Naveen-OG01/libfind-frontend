@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './App.css';
 
 function QuickScan() {
-  const [isAdmin, setIsAdmin] = useState(!!localStorage.getItem('admin_token'));
+  const [isAdmin] = useState(!!localStorage.getItem('admin_token'));
   const [rollNumber, setRollNumber] = useState('');
   const [student, setStudent] = useState(null);
   const [bookId, setBookId] = useState('');

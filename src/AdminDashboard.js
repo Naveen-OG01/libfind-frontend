@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import './App.css';
 
 function AdminDashboard() {
@@ -8,8 +8,7 @@ function AdminDashboard() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const navigate = useNavigate();
-
+  
   useEffect(() => {
     // Check if admin is already logged in
     const token = localStorage.getItem('admin_token');
