@@ -99,17 +99,15 @@ function App() {
   return (
     <div className="app-container">
       {/* Navbar */}
+            {/* Navbar */}
       <nav className="navbar">
         <Link to="/" style={{ textDecoration: 'none' }}><h1>📚 LibFind</h1></Link>
         <div className="nav-links">
           <Link to="/">Home</Link>
-                    <Link to="/">Home</Link>
           <Link to="/admin" style={{ color: '#f59e0b' }}>Librarian Portal</Link>
-                    <Link to="/admin" style={{ color: '#f59e0b' }}>Librarian Portal</Link>
-          <Link to="/quick-scan" style={{ color: '#10b981', fontWeight: 'bold' }}>📷 Quick Scan</Link>  
-           {student && <Link to="/my-books">My Books</Link>}
+          <Link to="/quick-scan" style={{ color: '#10b981', fontWeight: 'bold' }}>📷 Quick Scan</Link>
           
-           {student ? (
+          {student ? (
             <>
               <Link to="/profile" style={{ color: '#38bdf8', fontWeight: 'bold', textDecoration: 'none' }}>
                 👤 {student.name}
