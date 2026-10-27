@@ -373,3 +373,24 @@ body {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Admin Tabs */
+.tab-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 10px 20px;
+  transition: 0.3s;
+}
+
+.tab-btn:hover {
+  color: #38bdf8;
+}
+
+.tab-btn.active {
+  color: #38bdf8;
+  border-bottom: 3px solid #38bdf8;
+}

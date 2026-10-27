@@ -15,11 +15,15 @@ function App() {
   const [message, setMessage] = useState({ type: '', text: '' });
   const navigate = useNavigate();
 
-  const fetchBooks = () => {
+    const fetchBooks = () => {
     fetch('https://libfind-api.onrender.com/api/books')
       .then(res => res.json())
       .then(data => {
         setBooks(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error:", err);
         setLoading(false);
       });
   };
