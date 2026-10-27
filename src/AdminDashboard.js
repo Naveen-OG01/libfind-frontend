@@ -8,6 +8,8 @@ function AdminDashboard() {
   const [error, setError] = useState('');
   
   const [activeTab, setActiveTab] = useState('dashboard');
+  
+  // Dashboard State
   const [stats, setStats] = useState(null);
   const [reminders, setReminders] = useState([]);
   const [message, setMessage] = useState('');
@@ -16,28 +18,24 @@ function AdminDashboard() {
   const [file, setFile] = useState(null);
   const [importMsg, setImportMsg] = useState('');
 
+  // Manage Books State
+  const [books, setBooks] = useState([]);
+  const [newBook, setNewBook] = useState({ title: '', author: '', isbn: '', category: '', total_copies: 1 });
+  const [bookMsg, setBookMsg] = useState('');
+
   const API_URL = 'https://libfind-api.onrender.com';
 
   useEffect(() => {
     if (isAdmin) {
       fetchStats();
       fetchReminders();
+      fetchBooks();
     }
   }, [isAdmin]);
 
-  const fetchStats = () => {
-    fetch(`${API_URL}/api/admin/stats`)
-      .then(res => res.json())
-      .then(data => setStats(data))
-      .catch(err => console.error(err));
-  };
-
-  const fetchReminders = () => {
-    fetch(`${API_URL}/api/admin/reminders`)
-      .then(res => res.json())
-      .then(data => setReminders(Array.isArray(data) ? data : []))
-      .catch(err => setReminders([]));
-  };
+  const fetchStats = () => fetch(`${API_URL}/api/admin/stats`).then(r => r.json()).then(d => setStats(d)).catch(console.error);
+  const fetchReminders = () => fetch(`${API_URL}/api/admin/reminders`).then(r => r.json()).then(d => setReminders(Array.isArray(d) ? d : [])).catch(console.error);
+  const fetchBooks = () => fetch(`${API_URL}/api/admin/books`).then(r => r.json()).then(d => setBooks(Array.isArray(d) ? d : [])).catch(console.error);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -62,37 +60,50 @@ function AdminDashboard() {
       const res = await fetch(`${API_URL}/api/admin/send-emails`, { method: 'POST' });
       const data = await res.json();
       setMessage(data.message || "Emails sent!");
-    } catch (err) {
-      setMessage("Failed to send emails.");
-    }
+    } catch (err) { setMessage("Failed to send emails."); }
   };
 
   const handleBulkUpload = async (e) => {
     e.preventDefault();
     if (!file) return;
-    
     setImportMsg("Uploading and importing...");
     const formData = new FormData();
     formData.append("file", file);
-
     try {
-      const res = await fetch(`${API_URL}/api/admin/bulk-import-books`, {
+      const res = await fetch(`${API_URL}/api/admin/bulk-import-books`, { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail);
+      setImportMsg(`✅ ${data.message}`);
+      setFile(null);
+      fetchBooks();
+    } catch (err) { setImportMsg(`❌ Error: ${err.message}`); }
+  };
+
+  const handleAddBook = async (e) => {
+    e.preventDefault();
+    setBookMsg('');
+    try {
+      const res = await fetch(`${API_URL}/api/admin/books`, {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newBook)
       });
       const data = await res.json();
-      
       if (!res.ok) throw new Error(data.detail);
-      
-      setImportMsg(`✅ ${data.message}`);
-      if (data.errors && data.errors.length > 0) {
-        setImportMsg(prev => prev + ` (${data.errors.length} rows skipped)`);
-      }
-      setFile(null); // clear file input
-      fetchStats(); // update counts
-    } catch (err) {
-      setImportMsg(`❌ Error: ${err.message}`);
-    }
+      setBookMsg("✅ Book added successfully!");
+      setNewBook({ title: '', author: '', isbn: '', category: '', total_copies: 1 });
+      fetchBooks();
+    } catch (err) { setBookMsg(`❌ Error: ${err.message}`); }
+  };
+
+  const handleDeleteBook = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this book?")) return;
+    try {
+      const res = await fetch(`${API_URL}/api/admin/books/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error("Failed to delete");
+      fetchBooks();
+      setBookMsg("🗑️ Book deleted.");
+    } catch (err) { setBookMsg(`❌ Error: ${err.message}`); }
   };
 
   if (!isAdmin) {
@@ -128,10 +139,10 @@ function AdminDashboard() {
       <main style={{ padding: '40px', maxWidth: '1000px', margin: '0 auto' }}>
         
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '30px', borderBottom: '2px solid #334155', paddingBottom: '10px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '30px', borderBottom: '2px solid #334155', paddingBottom: '10px' }}>
           <button className={`tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>📊 Dashboard</button>
+          <button className={`tab-btn ${activeTab === 'books' ? 'active' : ''}`} onClick={() => setActiveTab('books')}>📚 Manage Books</button>
           <button className={`tab-btn ${activeTab === 'import' ? 'active' : ''}`} onClick={() => setActiveTab('import')}>📄 Bulk Import</button>
-          <button className={`tab-btn ${activeTab === 'students' ? 'active' : ''}`} onClick={() => setActiveTab('students')}>👥 Students</button>
           <button className={`tab-btn ${activeTab === 'notifications' ? 'active' : ''}`} onClick={() => setActiveTab('notifications')}>✉️ Notifications</button>
         </div>
 
@@ -149,12 +160,42 @@ function AdminDashboard() {
           </div>
         )}
 
+        {/* Manage Books Tab */}
+        {activeTab === 'books' && (
+          <div>
+            <h3 style={{ color: '#38bdf8', marginBottom: '20px' }}>➕ Add a New Book</h3>
+            <form onSubmit={handleAddBook} className="login-card" style={{ maxWidth: '100%', marginBottom: '40px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                <div className="input-group"><label>Title *</label><input type="text" value={newBook.title} onChange={e => setNewBook({...newBook, title: e.target.value})} required /></div>
+                <div className="input-group"><label>Author *</label><input type="text" value={newBook.author} onChange={e => setNewBook({...newBook, author: e.target.value})} required /></div>
+                <div className="input-group"><label>ISBN</label><input type="text" value={newBook.isbn} onChange={e => setNewBook({...newBook, isbn: e.target.value})} /></div>
+                <div className="input-group"><label>Category</label><input type="text" value={newBook.category} onChange={e => setNewBook({...newBook, category: e.target.value})} /></div>
+                <div className="input-group"><label>Total Copies</label><input type="number" value={newBook.total_copies} onChange={e => setNewBook({...newBook, total_copies: parseInt(e.target.value)})} required /></div>
+              </div>
+              <button type="submit" className="login-submit-btn" style={{ marginTop: '15px' }}>Add Book</button>
+              {bookMsg && <p style={{ color: bookMsg.includes('Error') ? '#ef4444' : '#10b981', marginTop: '15px' }}>{bookMsg}</p>}
+            </form>
+
+            <h3 style={{ color: '#38bdf8', marginBottom: '20px' }}>📚 Library Catalog</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {books.map(b => (
+                <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1e293b', padding: '15px', borderRadius: '8px', borderLeft: '4px solid #3b82f6' }}>
+                  <div>
+                    <strong style={{ color: '#f8fafc' }}>{b.title}</strong>
+                    <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>by {b.author} | {b.category_name || 'General'}</p>
+                  </div>
+                  <button onClick={() => handleDeleteBook(b.id)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '6px', cursor: 'pointer' }}>Delete</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Bulk Import Tab */}
         {activeTab === 'import' && (
           <div style={{ maxWidth: '600px' }}>
             <h3 style={{ color: '#38bdf8', marginBottom: '20px' }}>📄 Bulk Import Books</h3>
             <p style={{ color: '#94a3b8', marginBottom: '20px' }}>Upload a CSV file with columns: <strong>title, author, isbn, category, publisher, year, total_copies, shelf, rack</strong>.</p>
-            
             <form onSubmit={handleBulkUpload} className="login-card" style={{ maxWidth: '100%' }}>
               <div className="input-group">
                 <input type="file" accept=".csv" onChange={(e) => setFile(e.target.files[0])} required />
@@ -169,9 +210,7 @@ function AdminDashboard() {
         {activeTab === 'notifications' && (
           <div>
             <h3 style={{ color: '#38bdf8', marginBottom: '20px' }}>Overdue & Due Soon Alerts</h3>
-            {reminders.length === 0 ? (
-              <p style={{ color: '#94a3b8' }}>No students to notify today.</p>
-            ) : (
+            {reminders.length === 0 ? <p style={{ color: '#94a3b8' }}>No students to notify today.</p> : (
               <>
                 <ul style={{ listStyle: 'none', padding: 0, marginBottom: '20px' }}>
                   {reminders.map((r, i) => (
@@ -184,14 +223,6 @@ function AdminDashboard() {
                 {message && <p style={{ color: '#10b981', marginTop: '10px' }}>{message}</p>}
               </>
             )}
-          </div>
-        )}
-
-        {/* Students Tab */}
-        {activeTab === 'students' && (
-          <div>
-            <h3 style={{ color: '#38bdf8', marginBottom: '20px' }}>Registered Students</h3>
-            <p style={{ color: '#94a3b8' }}>Student management will be added here soon!</p>
           </div>
         )}
 
