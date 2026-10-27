@@ -11,6 +11,10 @@ function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [reminders, setReminders] = useState([]);
   const [message, setMessage] = useState('');
+  
+  // Bulk Import State
+  const [file, setFile] = useState(null);
+  const [importMsg, setImportMsg] = useState('');
 
   const API_URL = 'https://libfind-api.onrender.com';
 
@@ -25,17 +29,14 @@ function AdminDashboard() {
     fetch(`${API_URL}/api/admin/stats`)
       .then(res => res.json())
       .then(data => setStats(data))
-      .catch(err => console.error("Stats Error:", err));
+      .catch(err => console.error(err));
   };
 
   const fetchReminders = () => {
     fetch(`${API_URL}/api/admin/reminders`)
       .then(res => res.json())
       .then(data => setReminders(Array.isArray(data) ? data : []))
-      .catch(err => {
-        console.error("Reminders Error:", err);
-        setReminders([]);
-      });
+      .catch(err => setReminders([]));
   };
 
   const handleLogin = async (e) => {
@@ -49,7 +50,6 @@ function AdminDashboard() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Login failed");
-      
       localStorage.setItem('admin_token', data.token);
       setIsAdmin(true);
     } catch (err) {
@@ -64,6 +64,34 @@ function AdminDashboard() {
       setMessage(data.message || "Emails sent!");
     } catch (err) {
       setMessage("Failed to send emails.");
+    }
+  };
+
+  const handleBulkUpload = async (e) => {
+    e.preventDefault();
+    if (!file) return;
+    
+    setImportMsg("Uploading and importing...");
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch(`${API_URL}/api/admin/bulk-import-books`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.detail);
+      
+      setImportMsg(`✅ ${data.message}`);
+      if (data.errors && data.errors.length > 0) {
+        setImportMsg(prev => prev + ` (${data.errors.length} rows skipped)`);
+      }
+      setFile(null); // clear file input
+      fetchStats(); // update counts
+    } catch (err) {
+      setImportMsg(`❌ Error: ${err.message}`);
     }
   };
 
@@ -102,6 +130,7 @@ function AdminDashboard() {
         {/* Tabs */}
         <div style={{ display: 'flex', gap: '10px', marginBottom: '30px', borderBottom: '2px solid #334155', paddingBottom: '10px' }}>
           <button className={`tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>📊 Dashboard</button>
+          <button className={`tab-btn ${activeTab === 'import' ? 'active' : ''}`} onClick={() => setActiveTab('import')}>📄 Bulk Import</button>
           <button className={`tab-btn ${activeTab === 'students' ? 'active' : ''}`} onClick={() => setActiveTab('students')}>👥 Students</button>
           <button className={`tab-btn ${activeTab === 'notifications' ? 'active' : ''}`} onClick={() => setActiveTab('notifications')}>✉️ Notifications</button>
         </div>
@@ -117,6 +146,22 @@ function AdminDashboard() {
                 <div className="stat-card info"><h3>🔖 Reservations</h3><p className="stat-number">{stats.reservations || 0}</p></div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Bulk Import Tab */}
+        {activeTab === 'import' && (
+          <div style={{ maxWidth: '600px' }}>
+            <h3 style={{ color: '#38bdf8', marginBottom: '20px' }}>📄 Bulk Import Books</h3>
+            <p style={{ color: '#94a3b8', marginBottom: '20px' }}>Upload a CSV file with columns: <strong>title, author, isbn, category, publisher, year, total_copies, shelf, rack</strong>.</p>
+            
+            <form onSubmit={handleBulkUpload} className="login-card" style={{ maxWidth: '100%' }}>
+              <div className="input-group">
+                <input type="file" accept=".csv" onChange={(e) => setFile(e.target.files[0])} required />
+              </div>
+              <button type="submit" className="login-submit-btn">Upload & Import</button>
+            </form>
+            {importMsg && <p style={{ marginTop: '20px', color: '#10b981', fontWeight: 'bold' }}>{importMsg}</p>}
           </div>
         )}
 
@@ -146,7 +191,7 @@ function AdminDashboard() {
         {activeTab === 'students' && (
           <div>
             <h3 style={{ color: '#38bdf8', marginBottom: '20px' }}>Registered Students</h3>
-            <p style={{ color: '#94a3b8' }}>Bulk Student Import will be added here soon!</p>
+            <p style={{ color: '#94a3b8' }}>Student management will be added here soon!</p>
           </div>
         )}
 
