@@ -7,7 +7,6 @@ function AdminDashboard() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   
-  // Dashboard State
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState(null);
   const [reminders, setReminders] = useState([]);
@@ -26,14 +25,17 @@ function AdminDashboard() {
     fetch(`${API_URL}/api/admin/stats`)
       .then(res => res.json())
       .then(data => setStats(data))
-      .catch(err => console.error(err));
+      .catch(err => console.error("Stats Error:", err));
   };
 
   const fetchReminders = () => {
     fetch(`${API_URL}/api/admin/reminders`)
       .then(res => res.json())
-      .then(data => setReminders(data))
-      .catch(err => console.error(err));
+      .then(data => setReminders(Array.isArray(data) ? data : []))
+      .catch(err => {
+        console.error("Reminders Error:", err);
+        setReminders([]);
+      });
   };
 
   const handleLogin = async (e) => {
@@ -46,7 +48,7 @@ function AdminDashboard() {
         body: JSON.stringify({ username, password })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail);
+      if (!res.ok) throw new Error(data.detail || "Login failed");
       
       localStorage.setItem('admin_token', data.token);
       setIsAdmin(true);
@@ -59,7 +61,7 @@ function AdminDashboard() {
     try {
       const res = await fetch(`${API_URL}/api/admin/send-emails`, { method: 'POST' });
       const data = await res.json();
-      setMessage(data.message);
+      setMessage(data.message || "Emails sent!");
     } catch (err) {
       setMessage("Failed to send emails.");
     }
@@ -109,10 +111,10 @@ function AdminDashboard() {
           <div>
             {!stats ? <p>Loading stats...</p> : (
               <div className="stats-grid">
-                <div className="stat-card"><h3>📚 Books Borrowed</h3><p className="stat-number">{stats.active_loans}</p></div>
-                <div className="stat-card danger"><h3>⚠️ Overdue Books</h3><p className="stat-number">{stats.overdue}</p></div>
-                <div className="stat-card warning"><h3>💰 Unpaid Fines</h3><p className="stat-number">₹{stats.unpaid_fines}</p></div>
-                <div className="stat-card info"><h3>🔖 Reservations</h3><p className="stat-number">{stats.reservations}</p></div>
+                <div className="stat-card"><h3>📚 Books Borrowed</h3><p className="stat-number">{stats.active_loans || 0}</p></div>
+                <div className="stat-card danger"><h3>⚠️ Overdue Books</h3><p className="stat-number">{stats.overdue || 0}</p></div>
+                <div className="stat-card warning"><h3>💰 Unpaid Fines</h3><p className="stat-number">₹{stats.unpaid_fines || 0}</p></div>
+                <div className="stat-card info"><h3>🔖 Reservations</h3><p className="stat-number">{stats.reservations || 0}</p></div>
               </div>
             )}
           </div>
@@ -140,7 +142,7 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* Students Tab (Placeholder for now) */}
+        {/* Students Tab */}
         {activeTab === 'students' && (
           <div>
             <h3 style={{ color: '#38bdf8', marginBottom: '20px' }}>Registered Students</h3>
