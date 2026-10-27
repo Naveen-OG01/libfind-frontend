@@ -22,6 +22,7 @@ function AdminDashboard() {
   const [books, setBooks] = useState([]);
   const [newBook, setNewBook] = useState({ title: '', author: '', isbn: '', category: '', total_copies: 1 });
   const [bookMsg, setBookMsg] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const API_URL = 'https://libfind-api.onrender.com';
 
@@ -96,14 +97,25 @@ function AdminDashboard() {
     } catch (err) { setBookMsg(`❌ Error: ${err.message}`); }
   };
 
-  const handleDeleteBook = async (id) => {
+    const handleDeleteBook = async (id) => {
     if (!window.confirm("Are you sure you want to delete this book?")) return;
+    
+    setIsDeleting(true);
+    setBookMsg('Deleting book...');
+    
     try {
       const res = await fetch(`${API_URL}/api/admin/books/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error("Failed to delete");
-      fetchBooks();
-      setBookMsg("🗑️ Book deleted.");
-    } catch (err) { setBookMsg(`❌ Error: ${err.message}`); }
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.detail || "Failed to delete (Book might be borrowed)");
+      
+      fetchBooks(); // Refresh list
+      setBookMsg("🗑️ Book deleted successfully.");
+    } catch (err) { 
+      setBookMsg(`❌ Error: ${err.message}`); 
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (!isAdmin) {
