@@ -426,7 +426,16 @@ function AdminDashboard() {
           <p>Manage books, students, circulation, and reports.</p>
         </div>
         <div className="admin-heading-actions">
-          <Link className="text-button" to="/quick-scan">Open quick scan</Link>
+          <Link className="text-button scan-link" to="/quick-scan">Open quick scan</Link>
+          <button
+            className="login-submit-btn admin-add-book"
+            onClick={() => {
+              setActiveTab('books');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          >
+            + Add book
+          </button>
           <button className="login-btn" onClick={handleLogout}>Log out</button>
         </div>
       </header>
@@ -438,6 +447,7 @@ function AdminDashboard() {
           <button
             key={id}
             className={`tab-btn ${activeTab === id ? 'active' : ''}`}
+            aria-current={activeTab === id ? 'page' : undefined}
             onClick={() => { setActiveTab(id); setError(''); setNotice(''); }}
           >
             {label}

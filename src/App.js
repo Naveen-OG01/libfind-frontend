@@ -7,6 +7,7 @@ import Profile from './Profile';
 import QuickScan from './QuickScan';
 import { apiRequest } from './api';
 import './App.css';
+import './Theme.css';
 
 function getSavedStudent() {
   try {
@@ -265,8 +266,11 @@ function App() {
   const homePage = (
     <>
       <header className="hero">
-        <h2>Discover your next read</h2>
-        <p>Search by title, author, ISBN, or category, then find it on the shelf.</p>
+        <div className="hero-copy">
+          <p className="eyebrow">Discover · Learn · Belong</p>
+          <h2>Discover your next read</h2>
+          <p>Search by title, author, ISBN, or category, then find it on the shelf.</p>
+        </div>
         <form className="catalog-search" onSubmit={handleSearch}>
           <label>
             Search terms
@@ -327,6 +331,11 @@ function App() {
             </label>
           </div>
           <button type="submit" className="login-submit-btn">Search books</button>
+          <div className="hero-points" aria-label="Library features">
+            <span><strong>Find</strong> books by title, author, or ISBN</span>
+            <span><strong>Locate</strong> each book on the shelf</span>
+            <span><strong>Reserve</strong> books that are checked out</span>
+          </div>
         </form>
       </header>
 
@@ -387,7 +396,14 @@ function App() {
     <div className="app-container" onClick={animateButtonClick}>
       {showIntro && <BrandIntro onSkip={() => setShowIntro(false)} />}
       <nav className="navbar">
-        <Link to="/" className="brand"><h1>LibFind</h1></Link>
+        <Link to="/" className="brand">
+          <span className="brand-icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none">
+              <path d="M24 13.5c-5.3-3.1-11.2-3.4-17-1.6v21.4c5.8-1.8 11.7-1.5 17 1.6m0-21.4c5.3-3.1 11.2-3.4 17-1.6v21.4c-5.8-1.8-11.7-1.5-17 1.6m0-21.4v21.4" />
+            </svg>
+          </span>
+          <span className="brand-wordmark">LibFind</span>
+        </Link>
         <div className="nav-links">
           <Link to="/">Catalogue</Link>
           {student && <Link to="/my-books">My books</Link>}
