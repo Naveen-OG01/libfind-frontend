@@ -1,104 +1,116 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { apiRequest } from './api';
 import './App.css';
 
 function Profile() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    const savedStudent = localStorage.getItem('student');
-    if (!savedStudent) {
-      navigate('/login');
-      return;
+    let active = true;
+    let student;
+    try {
+      student = JSON.parse(localStorage.getItem('student') || 'null');
+    } catch (parseError) {
+      student = null;
     }
-    const student = JSON.parse(savedStudent);
 
-    fetch(`https://libfind-api.onrender.com/api/students/${student.roll_number}/dashboard`)
-      .then(res => res.json())
-      .then(resData => {
-        setData(resData);
-        setLoading(false);
+    if (!student || !localStorage.getItem('student_token')) {
+      navigate('/login');
+      return () => { active = false; };
+    }
+
+    apiRequest(`/api/students/${encodeURIComponent(student.roll_number)}/dashboard`)
+      .then(result => {
+        if (active) setData(result);
       })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
+      .catch(requestError => {
+        if (active) setError(requestError.message);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
       });
+
+    return () => { active = false; };
   }, [navigate]);
 
-  if (loading) return <div className="app-container" style={{padding: '50px', textAlign: 'center'}}>Loading profile...</div>;
-  if (!data) return <div className="app-container" style={{padding: '50px', textAlign: 'center'}}>Error loading profile.</div>;
+  if (loading) return <main className="page-content loading-state">Loading your account…</main>;
+  if (error) return <main className="page-content"><p className="notice error" role="alert">{error}</p></main>;
+  if (!data) return <main className="page-content"><p className="notice error">Account details are unavailable.</p></main>;
 
   return (
-    <div className="app-container">
-      <header className="hero" style={{ padding: '40px 20px', background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)' }}>
-        <h2>👤 {data.student.name}</h2>
-        <p>Roll No: {data.student.roll_number} | Email: {data.student.email}</p>
+    <main className="page-content">
+      <header className="page-heading">
+        <p className="eyebrow">Student account</p>
+        <h2>{data.student.name}</h2>
+        <p>{data.student.roll_number} · {data.student.email}</p>
       </header>
 
-      <main style={{ padding: '40px', maxWidth: '1000px', margin: '0 auto' }}>
-        
-        {/* Stats Row */}
-        <div className="stats-grid" style={{ marginBottom: '40px' }}>
-          <div className="stat-card warning">
-            <h3>💰 Unpaid Fines</h3>
-            <p className="stat-number" style={{ color: data.total_fines > 0 ? '#ef4444' : '#10b981' }}>
-              ₹{data.total_fines}
-            </p>
-          </div>
-          <div className="stat-card">
-            <h3>📚 Books Borrowed</h3>
-            <p className="stat-number">{data.active_loans.length}</p>
-          </div>
-          <div className="stat-card info">
-            <h3>🔖 Reservations</h3>
-            <p className="stat-number">{data.reservations.length}</p>
-          </div>
+      <section className="stats-grid account-stats" aria-label="Account summary">
+        <article className="stat-card warning">
+          <h3>Unpaid fines</h3>
+          <p className="stat-number">₹{data.total_fines || 0}</p>
+        </article>
+        <article className="stat-card">
+          <h3>Books borrowed</h3>
+          <p className="stat-number">{data.active_loans.length}</p>
+        </article>
+        <article className="stat-card info">
+          <h3>Reservations</h3>
+          <p className="stat-number">{data.reservations.length}</p>
+        </article>
+      </section>
+
+      <section className="account-section">
+        <div className="section-heading">
+          <div><h2>Current loans</h2><p>Check due dates and late fees.</p></div>
+          <Link className="text-button" to="/my-books">View all loans</Link>
         </div>
-
-        {/* Active Loans */}
-        <h3 style={{ color: '#38bdf8', marginBottom: '15px' }}>📖 Current Loans</h3>
         {data.active_loans.length === 0 ? (
-          <p style={{ color: '#94a3b8', marginBottom: '30px' }}>No active loans.</p>
-        ) : (
-          <div className="loan-list" style={{ marginBottom: '40px' }}>
-            {data.active_loans.map((loan, i) => (
-              <div key={i} className="loan-card">
-                <div>
-                  <h3>{loan.title}</h3>
-                  <p>Due: {loan.due_date.substring(0, 10)}</p>
-                </div>
-                <div className="loan-status">
-                   <span className="on-time">✅ Active</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Reservations */}
-        <h3 style={{ color: '#38bdf8', marginBottom: '15px' }}>🔖 My Reservations</h3>
-        {data.reservations.length === 0 ? (
-          <p style={{ color: '#94a3b8' }}>No pending reservations.</p>
+          <p className="muted-copy">No active loans.</p>
         ) : (
           <div className="loan-list">
-            {data.reservations.map((res, i) => (
-              <div key={i} className="loan-card" style={{ borderLeftColor: '#f59e0b' }}>
+            {data.active_loans.map(loan => (
+              <article key={loan.id} className={`loan-card ${loan.days_late > 0 ? 'overdue' : ''}`}>
                 <div>
-                  <h3>{res.title}</h3>
-                  <p>Reserved on: {res.reserve_date.substring(0, 10)}</p>
+                  <h3>{loan.title}</h3>
+                  <p>Due {String(loan.due_date).slice(0, 10)}</p>
                 </div>
                 <div className="loan-status">
-                   <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>⏳ Waiting</span>
+                  {loan.days_late > 0
+                    ? <span className="fine-alert">Overdue · ₹{loan.fine}</span>
+                    : <span className="on-time">On time</span>}
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         )}
+      </section>
 
-      </main>
-    </div>
+      <section className="account-section">
+        <div className="section-heading">
+          <div><h2>My reservations</h2><p>Books you have reserved while they are checked out.</p></div>
+        </div>
+        {data.reservations.length === 0 ? (
+          <p className="muted-copy">No pending reservations.</p>
+        ) : (
+          <div className="loan-list">
+            {data.reservations.map(reservation => (
+              <article key={reservation.id} className="loan-card reservation-card">
+                <div>
+                  <h3>{reservation.title}</h3>
+                  <p>Reserved {String(reservation.reserve_date).slice(0, 10)}</p>
+                </div>
+                <span className="reservation-status">Waiting</span>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+    </main>
   );
 }
 
