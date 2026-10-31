@@ -38,8 +38,18 @@ test('renders the searchable library catalogue', async () => {
   render(<App />);
 
   expect(screen.getByRole('heading', { name: /discover your next read/i })).toBeInTheDocument();
+  expect(screen.getByRole('status', { name: 'LibFind is starting' })).toBeInTheDocument();
   expect(await screen.findByRole('heading', { name: 'The Example Book' })).toBeInTheDocument();
   expect(screen.getByText('2 available')).toBeInTheDocument();
+});
+
+test('lets visitors skip the LibFind opening animation', async () => {
+  render(<App />);
+  await screen.findByRole('heading', { name: 'The Example Book' });
+
+  fireEvent.click(screen.getByRole('button', { name: 'Skip intro' }));
+
+  expect(screen.queryByRole('status', { name: 'LibFind is starting' })).not.toBeInTheDocument();
 });
 
 test('submits the selected catalogue filters to the API', async () => {
@@ -55,7 +65,9 @@ test('submits the selected catalogue filters to the API', async () => {
   fireEvent.change(screen.getByLabelText('Availability'), {
     target: { value: 'available' },
   });
-  fireEvent.click(screen.getByRole('button', { name: 'Search books' }));
+  const searchButton = screen.getByRole('button', { name: 'Search books' });
+  fireEvent.click(searchButton);
+  expect(searchButton).toHaveClass('button-clicked');
 
   await waitFor(() => {
     expect(apiRequest).toHaveBeenCalledWith(

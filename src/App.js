@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, Route, Routes, useNavigate } from 'react-router-dom';
 import AdminDashboard from './AdminDashboard';
 import Login from './Login';
@@ -19,6 +19,7 @@ function getSavedStudent() {
 }
 
 function App() {
+  const [showIntro, setShowIntro] = useState(true);
   const [student, setStudent] = useState(getSavedStudent);
   const [books, setBooks] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
@@ -35,6 +36,37 @@ function App() {
   const [recommendations, setRecommendations] = useState({});
   const [recommendationError, setRecommendationError] = useState('');
   const navigate = useNavigate();
+  const clickAnimationTimers = useRef(new WeakMap());
+
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+      setShowIntro(false);
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => setShowIntro(false), 2100);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const animateButtonClick = event => {
+    const button = event.target.closest(
+      'button, input[type="button"], input[type="submit"], [role="button"], .login-btn, .text-button'
+    );
+    if (!button || button.disabled) return;
+
+    const currentTimer = clickAnimationTimers.current.get(button);
+    if (currentTimer) window.clearTimeout(currentTimer);
+    button.classList.remove('button-clicked');
+    void button.offsetWidth;
+    button.classList.add('button-clicked');
+    const timer = window.setTimeout(() => {
+      if (button.isConnected) button.classList.remove('button-clicked');
+      clickAnimationTimers.current.delete(button);
+    }, 420);
+    clickAnimationTimers.current.set(button, timer);
+  };
 
   const loadBooks = useCallback(async (filters = {}) => {
     setLoading(true);
@@ -352,7 +384,8 @@ function App() {
   );
 
   return (
-    <div className="app-container">
+    <div className="app-container" onClick={animateButtonClick}>
+      {showIntro && <BrandIntro onSkip={() => setShowIntro(false)} />}
       <nav className="navbar">
         <Link to="/" className="brand"><h1>LibFind</h1></Link>
         <div className="nav-links">
@@ -378,6 +411,27 @@ function App() {
         <Route path="/quick-scan" element={<QuickScan />} />
         <Route path="/" element={homePage} />
       </Routes>
+    </div>
+  );
+}
+
+function BrandIntro({ onSkip }) {
+  return (
+    <div className="intro-splash" role="status" aria-label="LibFind is starting">
+      <div className="intro-glow intro-glow-one" />
+      <div className="intro-glow intro-glow-two" />
+      <div className="intro-content">
+        <div className="intro-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none">
+            <path d="M24 13.5c-5.3-3.1-11.2-3.4-17-1.6v21.4c5.8-1.8 11.7-1.5 17 1.6m0-21.4c5.3-3.1 11.2-3.4 17-1.6v21.4c-5.8-1.8-11.7-1.5-17 1.6m0-21.4v21.4" />
+            <path d="M12.5 18.5c2.8-.5 5.2-.2 7.5.8m-7.5 5c2.8-.5 5.2-.2 7.5.8m15-6.6c-2.8-.5-5.2-.2-7.5.8m7.5 5c-2.8-.5-5.2-.2-7.5.8" />
+          </svg>
+        </div>
+        <p className="intro-wordmark">LibFind</p>
+        <p className="intro-tagline">Search. Locate. Read.</p>
+        <span className="intro-loader" aria-hidden="true"><span /></span>
+      </div>
+      <button className="intro-skip" type="button" onClick={onSkip}>Skip intro</button>
     </div>
   );
 }
